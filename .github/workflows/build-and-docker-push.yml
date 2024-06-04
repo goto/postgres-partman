@@ -1,0 +1,33 @@
+name: Build and Push Docker Image
+
+on:
+  # Run workflow on push events to the main branch
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest  # Replace with your preferred runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Fetches code from your repository
+
+      - name: Login to Docker Hub (using secrets)
+        uses: docker/login-action@v2  # Official Docker login action
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx (optional for multi-platform builds)
+        uses: docker/setup-buildx-action@v3  # Optional for multi-arch builds
+
+      - name: Build Docker image (using build args)
+        uses: docker/build-push-action@v5  # Official Docker build and push action
+        with:
+          push: true  # Push image to Docker Hub
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/postgres-partman:1.0.0  # Replace with your desired tag
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: |  # Pass environment variables to build process
+            POSTGRES_VERSION=15
